@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "this is a backend project ",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start":"node index.js",
+    "dev":"nodemon src/index.js"
   },
   "keywords": [
     "js",
@@ -12,5 +14,8 @@
     "chaiaurcode"
   ],
   "author": "vasudevshree-krishna assistent-bhagi-bhai",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
 }
