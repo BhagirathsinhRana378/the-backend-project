@@ -1,0 +1,16 @@
+{
+  "name": "backend-prj",
+  "version": "1.0.0",
+  "description": "this is a backend project ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "js",
+    "backend",
+    "chaiaurcode"
+  ],
+  "author": "vasudevshree-krishna assistent-bhagi-bhai",
+  "license": "ISC"
+}
