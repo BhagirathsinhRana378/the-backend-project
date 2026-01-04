@@ -54,7 +54,13 @@ userSchema.pre("save", async function (next) {
     this.password = await bcrypt.hashSync(this.password, 10)
     next()
 })
-
+// method to compare password
+// this method will be used during login to verify the password
+// entered by the user with the hashed password stored in the database
+// bcrypt.compare() takes care of hashing the entered password and comparing it with the stored hash
+// it returns true if they match, false otherwise  
+// we are using function() instead of arrow function to have access to 'this' keyword
+// 'this' refers to the current user document
 userSchema.methods.isCorrectPassword = async function (password) {
     return await bcrypt.compare(password, this.password)
 }
