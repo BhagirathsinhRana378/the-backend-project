@@ -29,4 +29,24 @@ app.use(express.static('public'))//3
 // We are using express.static('public') to serve static files such as HTML, CSS, JavaScript, and images from the 'public' directory. This allows clients to access these files directly via HTTP requests. 
 
 
+// routes would be here
+import userRoutes from './routes/user.routes.js';
+
+//routes declaration
+
+app.use('/api/v1/users', userRoutes);
+// now userRoutes will be used for any route starting with /api/v1/users
+
+
+
+
+
+
+
+
+
+
+
+
+
 export { app }
