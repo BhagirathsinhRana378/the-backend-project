@@ -2,11 +2,12 @@ import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 
+
 const app = express()
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
     // origin: 'http://example.com', // replace with your client's origin in production
-    Credentials: true
+    credentials: true
     // why Credentials is set to true here?
     // Setting Credentials to true allows the server to accept cookies and authentication headers from the client, which is essential for maintaining user sessions and secure communication between the client and server.
 }))
@@ -49,4 +50,4 @@ app.use('/api/v1/users', userRoutes);
 
 
 
-export { app }
+export { app };
