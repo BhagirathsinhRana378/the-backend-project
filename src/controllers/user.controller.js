@@ -76,8 +76,8 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     return res.status(201).json(
-        new apiResponce(200, createdUser, "User registered successfully")
-    )// what this line does is:
+        new apiResponce(201, createdUser, "User registered successfully")
+    );// what this line does is:
     // it sends a JSON response with a status code of 201 (Created)
     // the response body is created using the apiResponce class
     // it includes a status code of 200, the createdUser data, and a success message
