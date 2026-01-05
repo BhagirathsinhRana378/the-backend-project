@@ -1,6 +1,75 @@
 import {asyncHandler} from '../utils/asyncHandler.js';
+import {ApiError} from '../utils/apiError.js';
+import {User} from '../models/user.model.js';
+import {uploadOncloudinary} from "../utils/cloudinary.js";
+import { apiResponce } from '../utils/apiResponce.js';
 
 const registerUser = asyncHandler(async (req, res) => {
+
+    const {username, email, password, fullname} = req.body;
+
+    if (
+        [fullname, username, email, password].some((field) => field?.trim === "")
+    ) {
+        throw new ApiError(400, "All fields are required");
+    }
+
+    // now we are checking if the user already exists
+    const exisitingUser = await User.findOne({
+        $or: [{username}, {email}]
+        // here the $or operator is used to check if either the username or email matches
+    })
+
+    if (exisitingUser) {
+        throw new ApiError(409, "User already exists with this username or email");
+    }
+
+    const avatarLocalPath = req.files?.avatar[0]?.path;
+    const coverimageLocalPath = req.files?.coverimage[0]?.path;
+// what this above line does is:
+// it checks if req.files exists and has an avatar property
+// if it does, it accesses the first file in the avatar array
+// and then retrieves the path property of that file
+// this is a way to safely access nested properties without causing errors if any part of the chain is undefined
+ 
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar is required");
+    }
+
+    const avatar = await uploadOncloudinary(avatarLocalPath);
+    const coverimage = await uploadOncloudinary(coverimageLocalPath);
+
+    if (!avatar) {
+        throw new ApiError(500, "Error uploading avatar image");
+    }
+
+    const user = await User.create({
+        username: username.toLowerCase(),
+        fullname,
+        avatar: avatar.url,
+        coverimage: coverimage?.url || "",
+        email,
+        password
+    })
+
+    const createdUser = await User.findById(user._id).select(
+        "-password -refreshToken"
+    )// what .select does is to exclude the password and refreshToken fields from the returned user document
+    // what findbyid does is to find the user by their unique identifier (_id) in the database
+
+    if (!createdUser) {
+        throw new ApiError(500, "User registration failed");
+    }
+
+    return res.status(201).json(
+        new apiResponce(200, createdUser, "User registered successfully")
+    )// what this line does is:
+    // it sends a JSON response with a status code of 201 (Created)
+    // the response body is created using the apiResponce class
+    // it includes a status code of 200, the createdUser data, and a success message
+    // this indicates that the user registration was successful
+
+
 
 })
 
