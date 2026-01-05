@@ -38,8 +38,8 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(409, "User already exists with this username or email");
     }
 
-    const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    const avatarLocalPath = req.files?.avatar?.[0]?.path;
+    const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
     // what this above line does is:
     // it checks if req.files exists and has an avatar property
     // if it does, it accesses the first file in the avatar array
@@ -83,7 +83,7 @@ const registerUser = asyncHandler(async (req, res) => {
     // it includes a status code of 200, the createdUser data, and a success message
     // this indicates that the user registration was successful
 
-console.log("BODY RECEIVED:", req.body);
+    console.log("BODY RECEIVED:", req.body);
 
 })
 
