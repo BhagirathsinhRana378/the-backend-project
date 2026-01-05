@@ -1,22 +1,36 @@
-import {asyncHandler} from '../utils/asyncHandler.js';
-import {ApiError} from '../utils/apiError.js';
-import {User} from '../models/user.model.js';
-import {uploadOncloudinary} from "../utils/cloudinary.js";
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { ApiError } from '../utils/apiError.js';
+import { User } from '../models/user.model.js';
+import { uploadOncloudinary } from "../utils/cloudinary.js";
 import { apiResponce } from '../utils/apiResponce.js';
+
 
 const registerUser = asyncHandler(async (req, res) => {
 
-    const {username, email, password, fullname} = req.body;
+    console.log("BODY RECEIVED 👉", req.body);
+    console.log("FILES RECEIVED 👉", req.files);
+
+
+    const { username, email, password, fullname } = req.body;
+
+
+    if (!fullname || !username || !email || !password) {
+        throw new ApiError(400, "All fields are required");
+    }
 
     if (
-        [fullname, username, email, password].some((field) => field?.trim === "")
+        [fullname, username, email, password].some((field) => field?.trim() === "")
     ) {
         throw new ApiError(400, "All fields are required");
     }
 
+
+    // if (!password) {
+    //     throw new ApiError(400, "Password is required");
+    // }
     // now we are checking if the user already exists
     const exisitingUser = await User.findOne({
-        $or: [{username}, {email}]
+        $or: [{ username }, { email }]
         // here the $or operator is used to check if either the username or email matches
     })
 
@@ -25,19 +39,19 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverimageLocalPath = req.files?.coverimage[0]?.path;
-// what this above line does is:
-// it checks if req.files exists and has an avatar property
-// if it does, it accesses the first file in the avatar array
-// and then retrieves the path property of that file
-// this is a way to safely access nested properties without causing errors if any part of the chain is undefined
- 
+    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    // what this above line does is:
+    // it checks if req.files exists and has an avatar property
+    // if it does, it accesses the first file in the avatar array
+    // and then retrieves the path property of that file
+    // this is a way to safely access nested properties without causing errors if any part of the chain is undefined
+
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar is required");
     }
 
     const avatar = await uploadOncloudinary(avatarLocalPath);
-    const coverimage = await uploadOncloudinary(coverimageLocalPath);
+    const coverImage = await uploadOncloudinary(coverImageLocalPath);
 
     if (!avatar) {
         throw new ApiError(500, "Error uploading avatar image");
@@ -47,7 +61,7 @@ const registerUser = asyncHandler(async (req, res) => {
         username: username.toLowerCase(),
         fullname,
         avatar: avatar.url,
-        coverimage: coverimage?.url || "",
+        coverImage: coverImage?.url || "",
         email,
         password
     })
@@ -69,11 +83,13 @@ const registerUser = asyncHandler(async (req, res) => {
     // it includes a status code of 200, the createdUser data, and a success message
     // this indicates that the user registration was successful
 
-
+console.log("BODY RECEIVED:", req.body);
 
 })
 
-export {registerUser};
+
+
+export { registerUser };
 
 // simple thing we are giving a request on /api/v1/users
 // form the app.js file

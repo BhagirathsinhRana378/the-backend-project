@@ -11,6 +11,8 @@ router.route("/register").post(
     ]),
     registerUser);
 
+   
+
 // middleware to handle file uploads
 // here we are using upload.fields to handle multiple file uploads with different field names
 // avatar and coverImage are the field names we are expecting from the frontend
