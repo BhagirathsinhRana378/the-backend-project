@@ -7,10 +7,7 @@ import { apiResponce } from '../utils/apiResponce.js';
 
 const registerUser = asyncHandler(async (req, res) => {
 
-    console.log("BODY RECEIVED 👉", req.body);
-    console.log("FILES RECEIVED 👉", req.files);
-
-
+   
     const { username, email, password, fullname } = req.body;
 
 
@@ -39,7 +36,12 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     const avatarLocalPath = req.files?.avatar?.[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
+    //const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
+
+    let coverImageLocalPath ;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path;
+    }
     // what this above line does is:
     // it checks if req.files exists and has an avatar property
     // if it does, it accesses the first file in the avatar array
