@@ -3,11 +3,30 @@ import { ApiError } from '../utils/apiError.js';
 import { User } from '../models/user.model.js';
 import { uploadOncloudinary } from "../utils/cloudinary.js";
 import { apiResponce } from '../utils/apiResponce.js';
+import { accessSync } from 'fs';
+
+const generateJwtTokenAndRefreshToken = async (user) => {
+
+    try {
+        const accessToken = user.generateJwtToken();// generateJwtToken is a method defined in the user model to generate JWT access token
+        const refreshToken = user.generateRefreshToken();// generateRefreshToken is a method defined in the user model to generate JWT refresh token
+        user.refreshTokens = refreshToken;// we are storing the refresh token in the user document in the database
+        await user.save({ validateBeforeSave: false });// we are saving the user document without running validation checks
+
+        return { accessToken, refreshToken };// we are returning both the access token and refresh token
+    } catch (error) {
+        throw new ApiError(500, "Error generating tokens");
+    }
 
 
+
+
+
+
+}
 const registerUser = asyncHandler(async (req, res) => {
 
-   
+
     const { username, email, password, fullname } = req.body;
 
 
@@ -38,7 +57,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const avatarLocalPath = req.files?.avatar?.[0]?.path;
     //const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
 
-    let coverImageLocalPath ;
+    let coverImageLocalPath;
     if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
         coverImageLocalPath = req.files.coverImage[0].path;
     }
@@ -85,39 +104,98 @@ const registerUser = asyncHandler(async (req, res) => {
     // it includes a status code of 200, the createdUser data, and a success message
     // this indicates that the user registration was successful
 
-    console.log("BODY RECEIVED:", req.body);
+
+    // simple thing we are giving a request on /api/v1/users
+    // form the app.js file
+    // so we wrote the code in app.js that if you get a request on /api/v1/users
+    // then use userRoutes to handle it and the userRoutes is pointing the request to the registerUser function in the user.controller.js file in the controllers folder
+    // so when we get a request on /api/v1/users/register
+    // it will go to the registerUser function in the user.controller.js file
+    // and the registerUser function will send a response with a message "hello you entred register user"
+
+
+    //sir-logic:
+    // get user details from frontend
+    // validation - not empty
+    // check if user already exists: username, email
+    // check for images, check for avatar
+    // upload them to cloudinary, avatar
+    // create user object - create entry in db
+    // remove password and refresh token field from response
+    // check for user creation
+    // return response
+
+    //my logic:
+    //for user registration steps
+    //s1 -get the data from the user like we asked in the user.model.js file
+    //s2-validate the data ❌ ai
+    //s3-check if the user already exists❌ ai
+    //s4-hash the password❌ ai
+    //s5-save the user to the database
+    //s6-send a response back to the client
 
 })
 
+const loginUser = asyncHandler(async, async (req, res) => {
+    // my logic: WRONG
+    //user comes
+    // user tries to login
+    //the user will exchange some access tokens
+    // user will add the required details neede to login and if it matches the perticluar access tokens details so the user will be logged in 
+    //so then the user will get the access to the protected routes
 
 
-export { registerUser };
-
-// simple thing we are giving a request on /api/v1/users
-// form the app.js file
-// so we wrote the code in app.js that if you get a request on /api/v1/users
-// then use userRoutes to handle it and the userRoutes is pointing the request to the registerUser function in the user.controller.js file in the controllers folder
-// so when we get a request on /api/v1/users/register
-// it will go to the registerUser function in the user.controller.js file
-// and the registerUser function will send a response with a message "hello you entred register user"
+    // sir logic: CORRECT
+    // req body -> data
+    // username or email
+    //find the user
+    //password check
+    //access and referesh token
+    //send cookie
 
 
-//sir-logic:
-// get user details from frontend
-// validation - not empty
-// check if user already exists: username, email
-// check for images, check for avatar
-// upload them to cloudinary, avatar
-// create user object - create entry in db
-// remove password and refresh token field from response
-// check for user creation
-// return response
+    const { username, email, password } = req.body;
+    if (!username || !email) {
+        throw new ApiError(400, "Username or email is required");
+    }
 
-//my logic:
-//for user registration steps
-//s1 -get the data from the user like we asked in the user.model.js file
-//s2-validate the data ❌ ai
-//s3-check if the user already exists❌ ai
-//s4-hash the password❌ ai
-//s5-save the user to the database
-//s6-send a response back to the client
+    const user = await User.findOne({
+        $or: [{ username }, { email }]
+    })
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const isPasswordValid = await user.isCorrectPassword(password);
+
+    if (!isPasswordMatched) {
+        throw new ApiError(401, "Incorrect password");
+    }
+
+    const { accessToken, refreshToken } = await generateJwtTokenAndRefreshToken(user._id);
+    
+    const loggedInUser = await user.findOne(user._id).select("-password -refreshToken");
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }// here we are setting the cookie options
+    // by default, cookies can be modified by the frontend side
+    // but by setting httpOnly to true, we are making the cookie inaccessible to the frontend side only can be changed by the backend side
+
+    return res
+    .status(200)
+    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, options)
+    .json(
+        new apiResponce(200, { user: loggedInUser , refreshToken, accessToken},
+             "User logged in successfully")
+    )
+})
+
+export {
+    registerUser,
+    loginUser
+};
+
