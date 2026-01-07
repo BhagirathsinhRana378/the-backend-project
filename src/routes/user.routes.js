@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { registerUser } from "../controllers/user.controller.js";
+import { loginUser, registerUser,logoutUser } from "../controllers/user.controller.js";
+import { verifyJwtToken } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router();
@@ -12,7 +13,10 @@ router.route("/register").post(
     ]),
     registerUser);
 
+router.route("/login").post(loginUser);
    
+//secured routes
+router.route("/logout").post(verifyJwtToken, logoutUser)
 
 // middleware to handle file uploads
 // here we are using upload.fields to handle multiple file uploads with different field names

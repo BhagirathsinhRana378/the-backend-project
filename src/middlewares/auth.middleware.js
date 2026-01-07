@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import { ApiError } from "../utils/apiError.js";
 
-export const verifyJwtToken = asyncHandler(async (req, res, next) => {
+export const verifyJwtToken = asyncHandler(async (req, _, next) => {
 
     try {
         const token = req.cookies.accessToken || req.headers("Authorization")?.replace("Bearer ", "");
@@ -23,6 +23,9 @@ export const verifyJwtToken = asyncHandler(async (req, res, next) => {
         if (!User) {
             throw new ApiError(401, "Unauthorized: User not found");
         }
+
+        req.user = User; // attach user to request object
+        next(); // proceed to the next middleware or route handler
     } catch (error) {
         throw new ApiError(401, "Unauthorized: Invalid token");
     }

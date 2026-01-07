@@ -198,13 +198,41 @@ const logoutUser = asyncHandler(async (req, res) => {
     // we just have to do 2 things
     // 1. remove the refresh token from the database
     // 2. clear the cookies from the browser
+    await User.findByIdAndUpdate(req.user._id, 
+        { $set: {
+            refreshTokens: undefined
+        }
 
+        },
+        {
+            new: true   
+        }
     
+        
+    );// here we are using the $unset operator to remove the refreshTokens field from the user document in the database
+
+    const options = {
+        httpOnly: true,
+        secure: true,
+        
+    };// here we are setting the cookie options
+    // by setting the expires to new Date(0), we are making the cookie expire immediately
+    
+     return res
+    .status(200)
+    .cookie("refreshToken",  options)
+    .cookie("accessToken", options)
+    .json(
+        new apiResponce(200,{}, "User logged out successfully")
+    )
+
+
 })
 
 
 export {
     registerUser,
-    loginUser
+    loginUser,
+    logoutUser
 };
 
