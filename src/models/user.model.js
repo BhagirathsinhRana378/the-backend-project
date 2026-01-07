@@ -51,6 +51,7 @@ userSchema.pre("save", async function () {
     if (!this.isModified("password")) return;
 
     this.password = await bcrypt.hash(this.password, 10);
+    next();
 });
 
 // method to compare password
@@ -77,7 +78,7 @@ userSchema.methods.generateJwtToken = function () {
         fullname: this.fullname
     }, 
     process.env.ACCESS_TOKEN_SECRET, { 
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN 
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRY
     }
 )
 }
@@ -91,7 +92,7 @@ userSchema.methods.generateRefreshToken = function () {
        
     }, 
     process.env.REFRESH_TOKEN_SECRET, { 
-        expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN 
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRY
     }
 )
 

@@ -3,6 +3,7 @@ import { loginUser, registerUser,logoutUser } from "../controllers/user.controll
 import { verifyJwtToken } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
+
 const router = Router();
 
 router.route("/register").post(

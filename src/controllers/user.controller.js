@@ -4,26 +4,23 @@ import User  from '../models/user.model.js';
 import { uploadOncloudinary } from "../utils/cloudinary.js";
 import { apiResponce } from '../utils/apiResponce.js';
 import { accessSync } from 'fs';
+import jwt from "jsonwebtoken";
 
 const generateJwtTokenAndRefreshToken = async (user) => {
-
     try {
-        const accessToken = user.generateJwtToken();// generateJwtToken is a method defined in the user model to generate JWT access token
-        const refreshToken = user.generateRefreshToken();// generateRefreshToken is a method defined in the user model to generate JWT refresh token
-        user.refreshTokens = refreshToken;// we are storing the refresh token in the user document in the database
-        await user.save({ validateBeforeSave: false });// we are saving the user document without running validation checks
+        const accessToken = user.generateJwtToken();
+        const refreshToken = user.generateRefreshToken();
 
-        return { accessToken, refreshToken };// we are returning both the access token and refresh token
+        user.refreshTokens = refreshToken;
+        await user.save({ validateBeforeSave: false });
+
+        return { accessToken, refreshToken };
     } catch (error) {
-        throw new ApiError(500, "Error generating tokens");
+        console.error("TOKEN GENERATION FAILURE →", error);
+        throw new ApiError(500, error.message || "Token generation failed");
     }
+};
 
-
-
-
-
-
-}
 const registerUser = asyncHandler(async (req, res) => {
 
 
@@ -175,7 +172,7 @@ const loginUser = asyncHandler( async (req, res) => {
 
     const { accessToken, refreshToken } = await generateJwtTokenAndRefreshToken(user);
     
-    const loggedInUser = await user.findById(user._id).select("-password -refreshToken");
+    const loggedInUser = await user.findByID(user._id).select("-password -refreshToken");
 
     const options = {
         httpOnly: true,
@@ -189,7 +186,7 @@ const loginUser = asyncHandler( async (req, res) => {
     .cookie("refreshToken", refreshToken, options)
     .cookie("accessToken", accessToken, options)
     .json(
-        new apiResponce(200, { user: loggedInUser , refreshToken, accessToken},
+        new ApiResponce(200, { user: loggedInUser , refreshToken, accessToken},
              "User logged in successfully")
     )
 })
@@ -223,7 +220,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     .clearcookie("refreshToken",  options)
     .clearcookie("accessToken", options)
     .json(
-        new apiResponce(200,{}, "User logged out successfully")
+        new ApiResponce(200,{}, "User logged out successfully")
     )
 
 

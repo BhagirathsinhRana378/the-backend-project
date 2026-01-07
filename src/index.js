@@ -8,6 +8,8 @@ import { app } from "./app.js";
 dotenv.config({
     path: './.env'
 });
+console.log("ACCESS_TOKEN_EXPIRY =", process.env.ACCESS_TOKEN_EXPIRY);
+console.log("REFRESH_TOKEN_EXPIRY =", process.env.REFRESH_TOKEN_EXPIRY);
 connectDB()
 .then(() => {
     app.listen(process.env.PORT || 8000, () => {
