@@ -5,22 +5,49 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import { ApiError } from "../utils/apiError.js";
-
 export const verifyJwtToken = asyncHandler(async (req, res, next) => {
 
     const authHeader = req.headers.authorization;
-    const token = req.cookies?.accessToken || authHeader?.replace("Bearer ", "");
+    const accessToken = authHeader?.replace("Bearer ", "");
+    const refreshToken = req.cookies?.refreshToken;
 
-    if (!token) {
-        throw new ApiError(401, "Unauthorized: Token missing");
+    if (!accessToken && !refreshToken) {
+        throw new ApiError(401, "Unauthorized: No token");
     }
 
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    // ---- TRY ACCESS TOKEN ----
+    if (accessToken) {
+        try {
+            const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+            const user = await User.findById(decoded._id).select("-password -refreshTokens");
 
-    const user = await User.findById(decoded._id).select("-password -refreshTokens");
+            if (!user) throw new ApiError(401, "Unauthorized");
 
-    if (!user) {
-        throw new ApiError(401, "Unauthorized: User not found");
+            req.user = user;
+            return next();
+        } catch (err) {
+            if (err.name !== "TokenExpiredError") {
+                throw err;
+            }
+        }
+    }
+
+    // ---- FALLBACK TO REFRESH TOKEN ----
+    if (!refreshToken) {
+        throw new ApiError(401, "Session expired. Please login again.");
+    }
+
+    let decodedRefresh;
+    try {
+        decodedRefresh = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    } catch (err) {
+        throw new ApiError(401, "Session expired. Please login again.");
+    }
+
+    const user = await User.findById(decodedRefresh._id);
+
+    if (!user || user.refreshTokens !== refreshToken) {
+        throw new ApiError(401, "Unauthorized: Invalid refresh token");
     }
 
     req.user = user;
