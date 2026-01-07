@@ -2,7 +2,7 @@
 // if authenticated, it will allow the request to proceed
 // if not, it will return a 401 Unauthorized response
 
-import asyncHandler from "../utils/asyncHandler.js";
+import {asyncHandler} from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import { ApiError } from "../utils/apiError.js";

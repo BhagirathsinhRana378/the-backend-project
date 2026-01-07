@@ -1,6 +1,6 @@
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/apiError.js';
-import { User } from '../models/user.model.js';
+import User  from '../models/user.model.js';
 import { uploadOncloudinary } from "../utils/cloudinary.js";
 import { apiResponce } from '../utils/apiResponce.js';
 import { accessSync } from 'fs';
@@ -136,7 +136,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
 })
 
-const loginUser = asyncHandler(async, async (req, res) => {
+const loginUser = asyncHandler( async (req, res) => {
     // my logic: WRONG
     //user comes
     // user tries to login
@@ -155,7 +155,7 @@ const loginUser = asyncHandler(async, async (req, res) => {
 
 
     const { username, email, password } = req.body;
-    if (!username || !email) {
+    if (!username && !email) {
         throw new ApiError(400, "Username or email is required");
     }
 
@@ -169,13 +169,13 @@ const loginUser = asyncHandler(async, async (req, res) => {
 
     const isPasswordValid = await user.isCorrectPassword(password);
 
-    if (!isPasswordMatched) {
+    if (!isPasswordValid) {
         throw new ApiError(401, "Incorrect password");
     }
 
-    const { accessToken, refreshToken } = await generateJwtTokenAndRefreshToken(user._id);
+    const { accessToken, refreshToken } = await generateJwtTokenAndRefreshToken(user);
     
-    const loggedInUser = await user.findOne(user._id).select("-password -refreshToken");
+    const loggedInUser = await user.findById(user._id).select("-password -refreshToken");
 
     const options = {
         httpOnly: true,
@@ -200,7 +200,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     // 2. clear the cookies from the browser
     await User.findByIdAndUpdate(req.user._id, 
         { $set: {
-            refreshTokens: undefined
+            refreshToken: undefined
         }
 
         },
@@ -220,8 +220,8 @@ const logoutUser = asyncHandler(async (req, res) => {
     
      return res
     .status(200)
-    .cookie("refreshToken",  options)
-    .cookie("accessToken", options)
+    .clearcookie("refreshToken",  options)
+    .clearcookie("accessToken", options)
     .json(
         new apiResponce(200,{}, "User logged out successfully")
     )

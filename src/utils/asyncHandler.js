@@ -7,6 +7,7 @@ const asyncHandler = (requestHandler) => {
     return (req, res, next) => {
 
         Promise.resolve(requestHandler(req, res, next)).catch((err) => next(err));
+        
     }
     // (req, res, next) This is useful because our requestHandler might be async or might return a Promise
     // Promise.resolve() converts the result into a Promise (whether it's already a Promise or not)
