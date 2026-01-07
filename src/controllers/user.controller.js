@@ -194,6 +194,15 @@ const loginUser = asyncHandler(async, async (req, res) => {
     )
 })
 
+const logoutUser = asyncHandler(async (req, res) => {
+    // we just have to do 2 things
+    // 1. remove the refresh token from the database
+    // 2. clear the cookies from the browser
+
+    
+})
+
+
 export {
     registerUser,
     loginUser
