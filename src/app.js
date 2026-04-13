@@ -2,7 +2,7 @@ import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 
-
+// app.js is the main entry point of our Express application. It sets up the server, middleware, and routes.
 const app = express()
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
